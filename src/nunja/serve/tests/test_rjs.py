@@ -1,22 +1,28 @@
 # -*- coding: utf-8 -*-
 import unittest
+import json
 
 from pkg_resources import Distribution
 
 from calmjs.registry import _inst as default_registry
+from calmjs.rjs.ecma import parse
+
 from nunja.registry import MoldRegistry
+
+from nunja.serve.rjs import BaseServer
+from nunja.serve.rjs import fetch
 from nunja.serve.rjs import make_config
 
 from calmjs.testing import mocks
 from calmjs.utils import pretty_logging
 
 
-class RJSConfigTestCase(unittest.TestCase):
+class BaseTestCase(unittest.TestCase):
 
     def create_workingset_registry(self, name='nunja.mold'):
         working_set = mocks.WorkingSet({
             name: [
-                'nunja.testing.molds = nunja.testing:mold',
+                'nunja.testing.mold = nunja.testing:mold',
             ]},
             dist=Distribution(project_name='nunja.testing')
         )
@@ -31,6 +37,9 @@ class RJSConfigTestCase(unittest.TestCase):
         self.addCleanup(cleanup)
         default_registry.records[name] = registry
 
+
+class RJSConfigTestCase(BaseTestCase):
+
     def test_generate_requirejs(self):
         self.setup_default()
         result = make_config('base')
@@ -38,14 +47,14 @@ class RJSConfigTestCase(unittest.TestCase):
             'baseUrl': 'base',
             'paths': {
                 'nunja.testing': 'nunja.mold/nunja.testing',
-                'nunja.testing.molds/basic':
-                    'nunja.mold/nunja.testing.molds/basic',
-                'nunja.testing.molds/include_by_name':
-                    'nunja.mold/nunja.testing.molds/include_by_name',
-                'nunja.testing.molds/include_by_value':
-                    'nunja.mold/nunja.testing.molds/include_by_value',
-                'nunja.testing.molds/itemlist':
-                    'nunja.mold/nunja.testing.molds/itemlist',
+                'nunja.testing.mold/basic':
+                    'nunja.mold/nunja.testing.mold/basic',
+                'nunja.testing.mold/include_by_name':
+                    'nunja.mold/nunja.testing.mold/include_by_name',
+                'nunja.testing.mold/include_by_value':
+                    'nunja.mold/nunja.testing.mold/include_by_value',
+                'nunja.testing.mold/itemlist':
+                    'nunja.mold/nunja.testing.mold/itemlist',
             }
         })
 
@@ -72,13 +81,77 @@ class RJSConfigTestCase(unittest.TestCase):
             'baseUrl': 'base',
             'paths': {
                 'nunja.testing': 'nunja.mold.alt/nunja.testing',
-                'nunja.testing.molds/basic':
-                    'nunja.mold.alt/nunja.testing.molds/basic',
-                'nunja.testing.molds/include_by_name':
-                    'nunja.mold.alt/nunja.testing.molds/include_by_name',
-                'nunja.testing.molds/include_by_value':
-                    'nunja.mold.alt/nunja.testing.molds/include_by_value',
-                'nunja.testing.molds/itemlist':
-                    'nunja.mold.alt/nunja.testing.molds/itemlist',
+                'nunja.testing.mold/basic':
+                    'nunja.mold.alt/nunja.testing.mold/basic',
+                'nunja.testing.mold/include_by_name':
+                    'nunja.mold.alt/nunja.testing.mold/include_by_name',
+                'nunja.testing.mold/include_by_value':
+                    'nunja.mold.alt/nunja.testing.mold/include_by_value',
+                'nunja.testing.mold/itemlist':
+                    'nunja.mold.alt/nunja.testing.mold/itemlist',
             }
         })
+
+    def test_fetch_missing_registry(self):
+        self.setup_default()
+        # force a missing
+        default_registry.records['nunja.mold'] = None
+        with self.assertRaises(KeyError):
+            fetch('nunja.mold', 'nunja.testing.mold/basic/template.nja')
+
+    def test_fetch_missing_target(self):
+        self.setup_default()
+        with self.assertRaises(KeyError):
+            fetch('nunja.mold', 'nunja.testing.mold/basic/not_found')
+
+    def test_fetch_good(self):
+        self.setup_default()
+        result = fetch('nunja.mold', 'nunja.testing.mold/basic/template.nja')
+        self.assertEqual(result, '<span>{{ value }}</span>\n')
+
+
+class BaseServerTestCase(BaseTestCase):
+
+    def test_serve_config(self):
+        self.setup_default()
+        server = BaseServer('base')
+        result = server.serve_config('base/config.js')
+
+        tree = parse(result)
+        config = json.loads(tree.children()[0].children()[0].children()[
+            0].children()[2].children()[0].children()[1].to_ecma())
+
+        self.assertEqual(config, {
+            'baseUrl': 'base',
+            'paths': {
+                'nunja.testing': 'nunja.mold/nunja.testing',
+                'nunja.testing.mold/basic':
+                    'nunja.mold/nunja.testing.mold/basic',
+                'nunja.testing.mold/include_by_name':
+                    'nunja.mold/nunja.testing.mold/include_by_name',
+                'nunja.testing.mold/include_by_value':
+                    'nunja.mold/nunja.testing.mold/include_by_value',
+                'nunja.testing.mold/itemlist':
+                    'nunja.mold/nunja.testing.mold/itemlist',
+            }
+        })
+
+    def test_serve_template_insufficient_path(self):
+        self.setup_default()
+        server = BaseServer('base')
+        with self.assertRaises(KeyError):
+            server.serve_template('nunja.mold')
+
+    def test_serve_template_disabled_registry(self):
+        self.setup_default()
+        server = BaseServer('base', registries=())
+        with self.assertRaises(KeyError):
+            server.serve_template(
+                'nunja.mold/nunja.testing.mold/basic/template.nja')
+
+    def test_serve_template_good(self):
+        self.setup_default()
+        server = BaseServer('base')
+        result = server.serve_template(
+            'nunja.mold/nunja.testing.mold/basic/template.nja')
+        self.assertEqual(result, '<span>{{ value }}</span>\n')
