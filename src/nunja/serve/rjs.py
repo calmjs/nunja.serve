@@ -69,6 +69,10 @@ def fetch(registry_name, mold_id_path):
 class BaseServer(object):
     """
     Base server implementation
+
+    In practice, only one registry should be available as the default
+    implementation only provide via a single registry to keep the
+    overall system simple under production usage.
     """
 
     def __init__(self, base_url, registries=(ENTRY_POINT_NAME,)):
@@ -97,3 +101,15 @@ class BaseServer(object):
             raise KeyError("registry '%s' unavailable" % registry_name)
 
         return fetch(registry_name, mold_id_path)
+
+
+class Server(BaseServer):
+    """
+    A more standard server implementation
+
+    Only one registry will be active at a time.
+    """
+
+    def __init__(self, base_url, registry=ENTRY_POINT_NAME):
+        registries = (registry,)
+        super(Server, self).__init__(base_url, registries)

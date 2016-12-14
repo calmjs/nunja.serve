@@ -10,6 +10,7 @@ from calmjs.rjs.ecma import parse
 from nunja.registry import MoldRegistry
 
 from nunja.serve.rjs import BaseServer
+from nunja.serve.rjs import Server
 from nunja.serve.rjs import fetch
 from nunja.serve.rjs import make_config
 
@@ -152,6 +153,17 @@ class BaseServerTestCase(BaseTestCase):
     def test_serve_template_good(self):
         self.setup_default()
         server = BaseServer('base')
+        result = server.serve_template(
+            'nunja.mold/nunja.testing.mold/basic/template.nja')
+        self.assertEqual(result, '<span>{{ value }}</span>\n')
+
+
+class ServerTestCase(BaseTestCase):
+
+    def test_serve_template_good(self):
+        # for completeness sake
+        self.setup_default()
+        server = Server('base', 'nunja.mold')
         result = server.serve_template(
             'nunja.mold/nunja.testing.mold/basic/template.nja')
         self.assertEqual(result, '<span>{{ value }}</span>\n')
