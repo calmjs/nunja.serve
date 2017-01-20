@@ -9,8 +9,8 @@ from calmjs.rjs.ecma import parse
 
 from nunja.registry import MoldRegistry
 
-from nunja.serve.rjs import BaseServer
-from nunja.serve.rjs import Server
+from nunja.serve.rjs import BaseProvider
+from nunja.serve.rjs import Provider
 from nunja.serve.rjs import fetch
 from nunja.serve.rjs import make_config
 
@@ -61,13 +61,13 @@ class RJSConfigTestCase(BaseTestCase):
 
     def test_generate_requirejs_no_registry(self):
         self.setup_default()
-        result = make_config('base', registries=())
+        result = make_config('base', registry_names=())
         self.assertEqual(result, {'baseUrl': 'base', 'paths': {}})
 
     def test_generate_requirejs_bad_registry(self):
         self.setup_default()
         with pretty_logging('nunja', stream=mocks.StringIO()) as s:
-            result = make_config('base', registries=('no_such_registry',))
+            result = make_config('base', registry_names=('no_such_registry',))
         self.assertEqual(result, {'baseUrl': 'base', 'paths': {}})
         self.assertIn(
             "registry 'no_such_registry' does not exist", s.getvalue())
@@ -76,7 +76,7 @@ class RJSConfigTestCase(BaseTestCase):
         self.setup_default()
         self.setup_default('nunja.mold.alt')
         with pretty_logging('nunja', stream=mocks.StringIO()) as s:
-            result = make_config('base', registries=(
+            result = make_config('base', registry_names=(
                 'nunja.mold', 'nunja.mold.alt'))
         self.assertEqual(result, {
             'baseUrl': 'base',
@@ -111,12 +111,12 @@ class RJSConfigTestCase(BaseTestCase):
         self.assertEqual(result, '<span>{{ value }}</span>\n')
 
 
-class BaseServerTestCase(BaseTestCase):
+class BaseProviderTestCase(BaseTestCase):
 
-    def test_serve_config(self):
+    def test_fetch_config(self):
         self.setup_default()
-        server = BaseServer('base')
-        result = server.serve_config('base/config.js')
+        server = BaseProvider('base')
+        result = server.fetch_config('base/config.js')
 
         tree = parse(result)
         config = json.loads(tree.children()[0].children()[0].children()[
@@ -137,33 +137,33 @@ class BaseServerTestCase(BaseTestCase):
             }
         })
 
-    def test_serve_template_insufficient_path(self):
+    def test_fetch_object_insufficient_path(self):
         self.setup_default()
-        server = BaseServer('base')
+        server = BaseProvider('base')
         with self.assertRaises(KeyError):
-            server.serve_template('nunja.mold')
+            server.fetch_object('nunja.mold')
 
-    def test_serve_template_disabled_registry(self):
+    def test_fetch_object_disabled_registry(self):
         self.setup_default()
-        server = BaseServer('base', registries=())
+        server = BaseProvider('base', registry_names=())
         with self.assertRaises(KeyError):
-            server.serve_template(
+            server.fetch_object(
                 'nunja.mold/nunja.testing.mold/basic/template.nja')
 
-    def test_serve_template_good(self):
+    def test_fetch_object_good(self):
         self.setup_default()
-        server = BaseServer('base')
-        result = server.serve_template(
+        server = BaseProvider('base')
+        result = server.fetch_object(
             'nunja.mold/nunja.testing.mold/basic/template.nja')
         self.assertEqual(result, '<span>{{ value }}</span>\n')
 
 
-class ServerTestCase(BaseTestCase):
+class ProviderTestCase(BaseTestCase):
 
-    def test_serve_template_good(self):
+    def test_fetch_object_good(self):
         # for completeness sake
         self.setup_default()
-        server = Server('base', 'nunja.mold')
-        result = server.serve_template(
+        server = Provider('base', 'nunja.mold')
+        result = server.fetch_object(
             'nunja.mold/nunja.testing.mold/basic/template.nja')
         self.assertEqual(result, '<span>{{ value }}</span>\n')

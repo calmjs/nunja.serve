@@ -17,10 +17,12 @@ from calmjs.rjs.umdjs import UMD_REQUIREJS_JSON_EXPORT_HEADER
 from calmjs.rjs.umdjs import UMD_REQUIREJS_JSON_EXPORT_FOOTER
 from nunja.registry import ENTRY_POINT_NAME
 
+from nunja.serve import base
+
 logger = logging.getLogger(__name__)
 
 
-def make_config(base_url, registries=(ENTRY_POINT_NAME,)):
+def make_config(base_url, registry_names=(ENTRY_POINT_NAME,)):
     """
     Return a configuration for requirejs to function against some end
     point.
@@ -33,7 +35,7 @@ def make_config(base_url, registries=(ENTRY_POINT_NAME,)):
 
     paths = {}
 
-    for name in registries:
+    for name in registry_names:
         registry = get(name)
         if not registry:
             logger.warning("registry '%s' does not exist", name)
@@ -66,44 +68,41 @@ def fetch(registry_name, mold_id_path):
         return f.read()
 
 
-class BaseServer(object):
+class BaseProvider(base.BaseProvider):
     """
-    Base server implementation
+    A more standard server implementation
 
-    In practice, only one registry should be available as the default
-    implementation only provide via a single registry to keep the
-    overall system simple under production usage.
+    Only one registry will be active at a time.
     """
 
-    def __init__(self, base_url, registries=(ENTRY_POINT_NAME,)):
-        self.base_url = base_url
-        self.registries = registries
-        self.requirejs_config = make_config(base_url, registries)
+    def __init__(self, *a, **kw):
+        super(BaseProvider, self).__init__(*a, **kw)
+        self.requirejs_config = make_config(self.base_url, self.registry_names)
 
-    def serve_config(self, path):
+    def fetch_config(self, identifier):
         return (UMD_REQUIREJS_JSON_EXPORT_HEADER +
             json_dumps(self.requirejs_config, indent=4) +
             UMD_REQUIREJS_JSON_EXPORT_FOOTER)
 
-    def serve_template(self, path):
+    def fetch_object(self, identifier):
         """
         The path is the URL fragment after the base_url.
         """
 
         # grab the first fragment
-        fragments = path.split('/', 1)
+        fragments = identifier.split('/', 1)
         if len(fragments) < 2:
-            raise KeyError("invalid path")
+            raise KeyError("invalid identifier")
 
         registry_name, mold_id_path = fragments
 
-        if registry_name not in self.registries:
+        if registry_name not in self.registry_names:
             raise KeyError("registry '%s' unavailable" % registry_name)
 
         return fetch(registry_name, mold_id_path)
 
 
-class Server(BaseServer):
+class Provider(BaseProvider):
     """
     A more standard server implementation
 
@@ -112,4 +111,4 @@ class Server(BaseServer):
 
     def __init__(self, base_url, registry=ENTRY_POINT_NAME):
         registries = (registry,)
-        super(Server, self).__init__(base_url, registries)
+        super(Provider, self).__init__(base_url, registries)
