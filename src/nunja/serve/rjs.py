@@ -8,7 +8,6 @@ during the development phase of a given library.
 """
 
 import codecs
-import json
 import logging
 
 from calmjs.utils import json_dumps
@@ -68,19 +67,25 @@ def fetch(registry_name, mold_id_path):
         return f.read()
 
 
-class BaseProvider(base.BaseProvider):
+class Provider(base.BaseProvider):
     """
     A more standard server implementation
 
     Only one registry will be active at a time.
     """
 
-    def __init__(self, *a, **kw):
-        super(BaseProvider, self).__init__(*a, **kw)
+    def __init__(
+            self, base_url,
+            config_subpaths=('config.js',),
+            registry_names=(ENTRY_POINT_NAME,),
+            ):
+        super(Provider, self).__init__(
+            base_url, config_subpaths, registry_names)
         self.requirejs_config = make_config(self.base_url, self.registry_names)
 
     def fetch_config(self, identifier):
-        return (UMD_REQUIREJS_JSON_EXPORT_HEADER +
+        return (
+            UMD_REQUIREJS_JSON_EXPORT_HEADER +
             json_dumps(self.requirejs_config, indent=4) +
             UMD_REQUIREJS_JSON_EXPORT_FOOTER)
 
@@ -102,13 +107,3 @@ class BaseProvider(base.BaseProvider):
         return fetch(registry_name, mold_id_path)
 
 
-class Provider(BaseProvider):
-    """
-    A more standard server implementation
-
-    Only one registry will be active at a time.
-    """
-
-    def __init__(self, base_url, registry=ENTRY_POINT_NAME):
-        registries = (registry,)
-        super(Provider, self).__init__(base_url, registries)

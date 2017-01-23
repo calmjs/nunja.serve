@@ -9,7 +9,6 @@ from calmjs.rjs.ecma import parse
 
 from nunja.registry import MoldRegistry
 
-from nunja.serve.rjs import BaseProvider
 from nunja.serve.rjs import Provider
 from nunja.serve.rjs import fetch
 from nunja.serve.rjs import make_config
@@ -75,7 +74,7 @@ class RJSConfigTestCase(BaseTestCase):
     def test_generate_requirejs_dupe_registry(self):
         self.setup_default()
         self.setup_default('nunja.mold.alt')
-        with pretty_logging('nunja', stream=mocks.StringIO()) as s:
+        with pretty_logging('nunja', stream=mocks.StringIO()):
             result = make_config('base', registry_names=(
                 'nunja.mold', 'nunja.mold.alt'))
         self.assertEqual(result, {
@@ -111,11 +110,11 @@ class RJSConfigTestCase(BaseTestCase):
         self.assertEqual(result, '<span>{{ value }}</span>\n')
 
 
-class BaseProviderTestCase(BaseTestCase):
+class ProviderTestCase(BaseTestCase):
 
     def test_fetch_config(self):
         self.setup_default()
-        server = BaseProvider('base')
+        server = Provider('base')
         result = server.fetch_config('base/config.js')
 
         tree = parse(result)
@@ -139,31 +138,20 @@ class BaseProviderTestCase(BaseTestCase):
 
     def test_fetch_object_insufficient_path(self):
         self.setup_default()
-        server = BaseProvider('base')
+        server = Provider('base')
         with self.assertRaises(KeyError):
             server.fetch_object('nunja.mold')
 
     def test_fetch_object_disabled_registry(self):
         self.setup_default()
-        server = BaseProvider('base', registry_names=())
+        server = Provider('base', registry_names=())
         with self.assertRaises(KeyError):
             server.fetch_object(
                 'nunja.mold/nunja.testing.mold/basic/template.nja')
 
     def test_fetch_object_good(self):
         self.setup_default()
-        server = BaseProvider('base')
-        result = server.fetch_object(
-            'nunja.mold/nunja.testing.mold/basic/template.nja')
-        self.assertEqual(result, '<span>{{ value }}</span>\n')
-
-
-class ProviderTestCase(BaseTestCase):
-
-    def test_fetch_object_good(self):
-        # for completeness sake
-        self.setup_default()
-        server = Provider('base', 'nunja.mold')
+        server = Provider('base')
         result = server.fetch_object(
             'nunja.mold/nunja.testing.mold/basic/template.nja')
         self.assertEqual(result, '<span>{{ value }}</span>\n')
