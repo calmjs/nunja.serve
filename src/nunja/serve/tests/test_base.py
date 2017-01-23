@@ -2,15 +2,7 @@
 import unittest
 
 from nunja.serve.base import BaseProvider
-
-
-class DummyProvider(BaseProvider):
-
-    def fetch_config(self, identifier):
-        return 'config:' + identifier
-
-    def fetch_object(self, identifier):
-        return 'object:' + identifier
+from nunja.serve.testing import DummyProvider
 
 
 class BaseProviderTestCase(unittest.TestCase):
@@ -40,3 +32,8 @@ class DummyProviderTestCase(unittest.TestCase):
         self.assertIsNone(provider.fetch('/elsewhere'))
         self.assertEqual(provider.fetch('/base/an_object'), 'object:an_object')
         self.assertEqual(provider.fetch('/base/config.js'), 'config:config.js')
+
+    def test_base_provider_serve_errors(self):
+        provider = DummyProvider('/base', config_subpaths=('config.js',))
+        with self.assertRaises(KeyError):
+            provider.fetch('/base/notfound')
