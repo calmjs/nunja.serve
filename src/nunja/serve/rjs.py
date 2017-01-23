@@ -17,6 +17,7 @@ from calmjs.rjs.umdjs import UMD_REQUIREJS_JSON_EXPORT_FOOTER
 from nunja.registry import ENTRY_POINT_NAME
 
 from nunja.serve import base
+from nunja.serve.simple import main
 
 logger = logging.getLogger(__name__)
 
@@ -107,3 +108,5 @@ class Provider(base.BaseProvider):
         return fetch(registry_name, mold_id_path)
 
 
+if __name__ == '__main__':  # pragma: no cover
+    main(provider_cls=Provider)
