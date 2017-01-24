@@ -96,7 +96,7 @@ class ServeNunjaTestCase(unittest.TestCase):
         main(DummyProvider)
 
         self.assertEqual(values['port'], 8000)
-        self.assertEqual(values['bind'], '')
+        self.assertEqual(values['bind'], '127.0.0.1')
         self.assertEqual(values['provider_cls'], DummyProvider)
 
     # This test can't be stopped...

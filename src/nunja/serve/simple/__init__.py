@@ -129,7 +129,7 @@ def serve_nunja(
 def main(provider_cls):
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--bind', '-b', default='', metavar='ADDRESS',
+    parser.add_argument('--bind', '-b', default='127.0.0.1', metavar='ADDRESS',
                         help='Specify alternate bind address '
                              '[default: all interfaces]')
     parser.add_argument('port', action='store',
