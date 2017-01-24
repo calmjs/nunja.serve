@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-The simple server is built on top of the SimpleHTTPRequestHandler which
-is part of the standard library.  This can simply be invoked in a
-directory that provide some static templates that has hooks into the
-JavaScript nunja libraries.
+The simple server is built on top of the builtin server and request
+handler classes from the standard library.  This can simply be invoked
+in a directory that provide some static templates that has hooks into
+the JavaScript nunja libraries.
 
 Alternatively, server side rendering can be enabled for Python scripts;
 if the option is set, Python scripts will be executed for the generation
@@ -12,13 +12,18 @@ of templates.
 
 import sys
 from io import BytesIO
+import posixpath
 
 from nunja.registry import ENTRY_POINT_NAME
 from nunja.serve.compat import HTTPServer
-from nunja.serve.compat import SimpleHTTPRequestHandler
+from nunja.serve.compat import CGIHTTPRequestHandler
 
 
-class NunjaHTTPRequestHandler(SimpleHTTPRequestHandler):
+def normpath(path):
+    return posixpath.normpath('/' + path)
+
+
+class NunjaHTTPRequestHandler(CGIHTTPRequestHandler):
     """
     Same as simple HTTP request heandler for serving local files, but
     specific paths can be specified to be proxies for specific external
@@ -35,12 +40,24 @@ class NunjaHTTPRequestHandler(SimpleHTTPRequestHandler):
         """
         self.nunja_prefix = nunja_prefix
         self.provider = provider
-        SimpleHTTPRequestHandler.__init__(
+        CGIHTTPRequestHandler.__init__(
             self, request, client_address, server)
 
+    def is_cgi(self):
+        """
+        Doing the somewhat dangerous thing of permitting _any_ Python
+        scripts found.
+        """
+
+        self.path = normpath(self.path)
+        if self.path.endswith('.py'):
+            self.cgi_info = self.path.rsplit('/', 1)
+            return True
+        return CGIHTTPRequestHandler.is_cgi(self)
+
     def send_head(self):
-        if not self.path.startswith(self.nunja_prefix):
-            return SimpleHTTPRequestHandler.send_head(self)
+        if not self.path.startswith(self.nunja_prefix + '/'):
+            return CGIHTTPRequestHandler.send_head(self)
             # TODO maybe have an option to merge the two "trees"?
 
         try:

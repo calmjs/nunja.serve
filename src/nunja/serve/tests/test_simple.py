@@ -28,6 +28,14 @@ def base_setup(inst):
     with open(os.path.join(tmpdir, 'file.txt'), 'w') as fd:
         fd.write('hello')
 
+    with open(os.path.join(tmpdir, 'script.py'), 'w') as fd:
+        fd.write('#!/usr/bin/env python\n')
+        fd.write('print("Content-Type: text/html")\n')
+        fd.write('print("")\n')
+        fd.write('print("Hello World")\n')
+
+    os.chmod(os.path.join(tmpdir, 'script.py'), 0o777)
+
 
 class RequestHandlerTestCase(unittest.TestCase):
 
@@ -58,6 +66,9 @@ class RequestHandlerTestCase(unittest.TestCase):
             self.getResponse('/base/an_object').read(), b'object:an_object')
         self.assertEqual(
             self.getResponse('/base/config.js').read(), b'config:config.js')
+
+    def test_request_handler_cgi(self):
+        self.assertIn(b'Hello World', self.getResponse('/script.py').read())
 
     def test_request_handler_notfound(self):
         self.assertEqual(self.getResponse('/base/notfound').status, 404)
