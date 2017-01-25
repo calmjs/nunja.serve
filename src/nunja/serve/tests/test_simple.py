@@ -15,6 +15,7 @@ from nunja.serve.compat import HTTPConnection
 from nunja.serve import simple
 from nunja.serve.simple import NunjaHTTPRequestHandler
 from nunja.serve.simple import NunjaHTTPRequestHandlerFactory
+from nunja.serve.simple import _is_cgi
 from nunja.serve.simple import main
 from nunja.serve.simple import serve_nunja
 from nunja.serve.testing import DummyProvider
@@ -35,6 +36,59 @@ def base_setup(inst):
         fd.write('print("Hello World")\n')
 
     os.chmod(os.path.join(tmpdir, 'script.py'), 0o777)
+
+
+class SupportTestCase(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_is_cgi_filename(self):
+        result, path, query = _is_cgi('/somewhere/path.txt')
+        self.assertFalse(result)
+        self.assertEqual('/somewhere/path.txt', path)
+        self.assertEqual(query, '')
+
+    def test_is_cgi_python_not_exists(self):
+        result, path, query = _is_cgi('/nowhere/path.py')
+        self.assertFalse(result)
+        self.assertEqual('/nowhere/path.py', path)
+        self.assertEqual(query, '')
+
+    def test_is_cgi_python_exists(self):
+        remember_cwd(self)
+        tmpdir = mkdtemp(self)
+        os.chdir(tmpdir)
+        with open(os.path.join(tmpdir, 'script.py'), 'w') as fd:
+            fd.write('print("hello")')
+
+        result, path, query = _is_cgi('script.py')
+        self.assertTrue(result)
+        self.assertEqual('script.py', path)
+        self.assertEqual(query, '')
+
+    def test_is_cgi_query(self):
+        remember_cwd(self)
+        tmpdir = mkdtemp(self)
+        os.chdir(tmpdir)
+        workdir = os.path.join(tmpdir, 'some', 'nested')
+        os.makedirs(os.path.join(workdir))
+        fn = os.path.join(workdir, 'script.py')
+        with open(fn, 'w') as fd:
+            fd.write('print("hello")')
+
+        result, path, query = _is_cgi('/some/nested/script.py?some_argument')
+        self.assertTrue(result)
+        self.assertEqual('/some/nested/script.py', path)
+        self.assertEqual(query, 'some_argument')
+
+        result, path, query = _is_cgi('/some/nested/script.py?path/argument')
+        self.assertTrue(result)
+        self.assertEqual('/some/nested/script.py', path)
+        self.assertEqual(query, 'path/argument')
 
 
 class RequestHandlerTestCase(unittest.TestCase):
@@ -68,7 +122,10 @@ class RequestHandlerTestCase(unittest.TestCase):
             self.getResponse('/base/config.js').read(), b'config:config.js')
 
     def test_request_handler_cgi(self):
-        self.assertIn(b'Hello World', self.getResponse('/script.py').read())
+        self.assertEqual(
+            b'Hello World\n', self.getResponse('/script.py').read())
+        self.assertEqual(
+            b'Hello World\n', self.getResponse('/script.py?/hello').read())
 
     def test_request_handler_notfound(self):
         self.assertEqual(self.getResponse('/base/notfound').status, 404)

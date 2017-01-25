@@ -16,7 +16,7 @@ print("")
 body = engine.execute('nunja.molds/table', data=data.to_jsonable())
 html = engine.load_mold('nunja.molds/html5').render(
     title='Example page',
-    js=['/node_modules/requirejs/require.js', '/nunja.js'],
+    js=['/node_modules/requirejs/require.js', '/nunja.js', '/nunja/config.js'],
     body=body,
 )
 

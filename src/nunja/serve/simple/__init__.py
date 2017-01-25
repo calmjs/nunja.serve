@@ -11,8 +11,11 @@ of templates.
 """
 
 import sys
-from io import BytesIO
 import posixpath
+from io import BytesIO
+from os import getcwd
+from os.path import exists
+from os.path import join
 
 from nunja.registry import ENTRY_POINT_NAME
 from nunja.serve.compat import HTTPServer
@@ -21,6 +24,37 @@ from nunja.serve.compat import CGIHTTPRequestHandler
 
 def normpath(path):
     return posixpath.normpath('/' + path)
+
+
+def _is_cgi(path):
+    """
+    Locate an available python script from the path and pass on all
+    remaining fragments to the script.
+    """
+
+    query = ''
+
+    # Original plan was to pass the extra paths after the script as a
+    # parameter (for use case such as url templates), but to support this
+    # for the default server looks to be difficult.
+    #
+    # for frag in frags:
+    #     q = frag.find('?')
+    #     if q >= 0:
+    #         resolved.append(frag[:q])
+    #         # XXX there is a chunk that is truncated.
+    #         query = path.split('?', 1)[1]
+    #         break
+    #     resolved.append(frag)
+
+    resolved = path.split('?')[0].split('/')
+    if path.find('?') >= 0:
+        query = path.split('?', 1)[1]
+
+    translated = join(getcwd(), *resolved)
+    if translated.endswith('.py') and exists(translated):
+        return True, '/'.join(resolved), query
+    return False, '/'.join(resolved), query
 
 
 class NunjaHTTPRequestHandler(CGIHTTPRequestHandler):
@@ -38,6 +72,7 @@ class NunjaHTTPRequestHandler(CGIHTTPRequestHandler):
         nunja also need to know the prefix, have an instance of the js
         provider.
         """
+
         self.nunja_prefix = nunja_prefix
         self.provider = provider
         CGIHTTPRequestHandler.__init__(
@@ -50,8 +85,12 @@ class NunjaHTTPRequestHandler(CGIHTTPRequestHandler):
         """
 
         self.path = normpath(self.path)
-        if self.path.endswith('.py'):
-            self.cgi_info = self.path.rsplit('/', 1)
+        status, path, query = _is_cgi(self.path)
+        if status:
+            self.path = path
+            self.cgi_info = path.rsplit('/', 1)
+            # restore the query
+            self.cgi_info[1] = self.cgi_info[1] + '?' + query
             return True
         return CGIHTTPRequestHandler.is_cgi(self)
 
