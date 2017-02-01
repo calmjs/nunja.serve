@@ -16,6 +16,7 @@ from io import BytesIO
 from os import getcwd
 from os.path import exists
 from os.path import join
+from types import MethodType
 
 from nunja.registry import ENTRY_POINT_NAME
 from nunja.serve.compat import HTTPServer
@@ -84,8 +85,26 @@ class NunjaHTTPRequestHandler(CGIHTTPRequestHandler):
         scripts found.
         """
 
+        # Hotfix broken function that breaks HTTP_ACCEPT
+        #
+        # TODO whenever upstream fixes this (never?) verify that this
+        # will not break that new version.  Related issues:
+        #
+        #     - http://bugs.python.org/issue5053
+        #     - http://bugs.python.org/issue5054
+
+        def getallmatchingheaders(self, name):
+            if name in self:
+                return [name + ':' + self.get(name)]
+            else:
+                return []
+
+        self.headers.getallmatchingheaders = MethodType(
+            getallmatchingheaders, self.headers)
+
         self.path = normpath(self.path)
         status, path, query = _is_cgi(self.path)
+
         if status:
             self.path = path
             self.cgi_info = path.rsplit('/', 1)

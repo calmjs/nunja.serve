@@ -34,8 +34,15 @@ def base_setup(inst):
         fd.write('print("Content-Type: text/html")\n')
         fd.write('print("")\n')
         fd.write('print("Hello World")\n')
-
     os.chmod(os.path.join(tmpdir, 'script.py'), 0o777)
+
+    with open(os.path.join(tmpdir, 'header.py'), 'w') as fd:
+        fd.write('#!/usr/bin/env python\n')
+        fd.write('import os\n')
+        fd.write('print("Content-Type: text/plain")\n')
+        fd.write('print("")\n')
+        fd.write('print(os.environ["HTTP_ACCEPT"])\n')
+    os.chmod(os.path.join(tmpdir, 'header.py'), 0o777)
 
 
 class SupportTestCase(unittest.TestCase):
@@ -106,9 +113,9 @@ class RequestHandlerTestCase(unittest.TestCase):
         self.server.server_close()
         self.server.shutdown()
 
-    def getResponse(self, url):
+    def getResponse(self, url, headers={}):
         conn = HTTPConnection(self.host, self.port)
-        conn.request('GET', url)
+        conn.request('GET', url, headers=headers)
         return conn.getresponse()
 
     def test_request_handler_fallback(self):
@@ -126,6 +133,14 @@ class RequestHandlerTestCase(unittest.TestCase):
             b'Hello World\n', self.getResponse('/script.py').read())
         self.assertEqual(
             b'Hello World\n', self.getResponse('/script.py?/hello').read())
+
+    def test_request_handler_cgi_http_accept(self):
+        self.assertEqual(
+            b'\n', self.getResponse('/header.py', {}).read())
+        self.assertEqual(
+            b'application/json\n', self.getResponse('/header.py?', {
+                b'Accept': b'application/json',
+            }).read())
 
     def test_request_handler_notfound(self):
         self.assertEqual(self.getResponse('/base/notfound').status, 404)
