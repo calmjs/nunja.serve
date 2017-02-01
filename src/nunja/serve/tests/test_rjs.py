@@ -55,6 +55,10 @@ class RJSConfigTestCase(BaseTestCase):
                     'nunja.mold/nunja.testing.mold/include_by_value',
                 'nunja.testing.mold/itemlist':
                     'nunja.mold/nunja.testing.mold/itemlist',
+                'nunja.testing.mold/noinit':
+                    'nunja.mold/nunja.testing.mold/noinit',
+                'nunja.testing.mold/problem':
+                    'nunja.mold/nunja.testing.mold/problem',
             }
         })
 
@@ -89,6 +93,10 @@ class RJSConfigTestCase(BaseTestCase):
                     'nunja.mold.alt/nunja.testing.mold/include_by_value',
                 'nunja.testing.mold/itemlist':
                     'nunja.mold.alt/nunja.testing.mold/itemlist',
+                'nunja.testing.mold/noinit':
+                    'nunja.mold.alt/nunja.testing.mold/noinit',
+                'nunja.testing.mold/problem':
+                    'nunja.mold.alt/nunja.testing.mold/problem',
             }
         })
 
@@ -133,6 +141,10 @@ class ProviderTestCase(BaseTestCase):
                     'nunja.mold/nunja.testing.mold/include_by_value',
                 'nunja.testing.mold/itemlist':
                     'nunja.mold/nunja.testing.mold/itemlist',
+                'nunja.testing.mold/noinit':
+                    'nunja.mold/nunja.testing.mold/noinit',
+                'nunja.testing.mold/problem':
+                    'nunja.mold/nunja.testing.mold/problem',
             }
         })
 
