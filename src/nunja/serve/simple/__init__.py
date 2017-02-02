@@ -24,7 +24,8 @@ from nunja.serve.compat import CGIHTTPRequestHandler
 
 
 def normpath(path):
-    return posixpath.normpath('/' + path)
+    ending = '/' if path[1:].endswith('/') else ''
+    return posixpath.normpath('/' + path).replace('//', '/') + ending
 
 
 def _is_cgi(path):

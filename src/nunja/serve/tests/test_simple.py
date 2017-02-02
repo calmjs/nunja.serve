@@ -16,6 +16,7 @@ from nunja.serve import simple
 from nunja.serve.simple import NunjaHTTPRequestHandler
 from nunja.serve.simple import NunjaHTTPRequestHandlerFactory
 from nunja.serve.simple import _is_cgi
+from nunja.serve.simple import normpath
 from nunja.serve.simple import main
 from nunja.serve.simple import serve_nunja
 from nunja.serve.testing import DummyProvider
@@ -44,6 +45,8 @@ def base_setup(inst):
         fd.write('print(os.environ["HTTP_ACCEPT"])\n')
     os.chmod(os.path.join(tmpdir, 'header.py'), 0o777)
 
+    os.mkdir(os.path.join(tmpdir, 'dir'))
+
 
 class SupportTestCase(unittest.TestCase):
 
@@ -52,6 +55,11 @@ class SupportTestCase(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def test_normpath(self):
+        self.assertEqual(normpath('/'), '/')
+        self.assertEqual(normpath('/some//where'), '/some/where')
+        self.assertEqual(normpath('/somewhere/'), '/somewhere/')
 
     def test_is_cgi_filename(self):
         result, path, query = _is_cgi('/somewhere/path.txt')
@@ -121,6 +129,14 @@ class RequestHandlerTestCase(unittest.TestCase):
     def test_request_handler_fallback(self):
         self.assertEqual(self.getResponse('/file.txt').read(), b'hello')
         self.assertEqual(self.getResponse('/notfound').status, 404)
+
+    def test_directory_render(self):
+        # Ensure that this wasn't accidentally broken.
+        results = self.getResponse('/').read()
+        self.assertIn('file.txt', results.decode('utf8'))
+        self.assertIn('script.py', results.decode('utf8'))
+        results = self.getResponse('/dir/').read()
+        self.assertIn('/dir/', results.decode('utf8'))
 
     def test_request_handler_basic(self):
         self.assertEqual(
