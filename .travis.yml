@@ -20,7 +20,7 @@ matrix:
       env: TRAVIS_NODE_VERSION=6.9
     - language: python
       python: 3.6
-      env: TRAVIS_NODE_VERSION=7.4
+      env: TRAVIS_NODE_VERSION=6.9
     - language: python
       python: 3.7-dev
       env: TRAVIS_NODE_VERSION=7.4
