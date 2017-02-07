@@ -2,6 +2,21 @@ from setuptools import setup, find_packages
 
 version = '0.0'
 
+classifiers = """
+Development Status :: 4 - Beta
+Environment :: Console
+Framework :: Setuptools Plugin
+Intended Audience :: Developers
+License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)
+Operating System :: OS Independent
+Programming Language :: JavaScript
+Programming Language :: Python :: 2.7
+Programming Language :: Python :: 3.3
+Programming Language :: Python :: 3.4
+Programming Language :: Python :: 3.5
+Programming Language :: Python :: 3.6
+""".strip().splitlines()
+
 long_description = (
     open('README.rst').read()
     + '\n' +
@@ -11,13 +26,11 @@ long_description = (
 setup(
     name='nunja.serve',
     version=version,
-    description="Package to help serve nunja",
+    description="Utilities for serving nunja molds over HTTP",
     long_description=long_description,
     # Get more strings from
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
-    classifiers=[
-        "Programming Language :: Python",
-    ],
+    classifiers=classifiers,
     keywords='',
     author='Tommy Yu',
     author_email='tommy.yu@auckland.ac.nz',
@@ -32,6 +45,7 @@ setup(
         'setuptools',
         # -*- Extra requirements: -*-
         'calmjs',
+        'nunja',
     ],
     entry_points={
     },
