@@ -121,45 +121,47 @@ class RequestHandlerTestCase(unittest.TestCase):
         self.server.server_close()
         self.server.shutdown()
 
-    def getResponse(self, url, headers={}):
+    def getresponse(self, url, headers={}):
         conn = HTTPConnection(self.host, self.port)
         conn.request('GET', url, headers=headers)
         return conn.getresponse()
 
+    def getresponse_text(self, url, headers={}):
+        return self.getresponse(url, headers).read().decode('utf8').strip()
+
     def test_request_handler_fallback(self):
-        self.assertEqual(self.getResponse('/file.txt').read(), b'hello')
-        self.assertEqual(self.getResponse('/notfound').status, 404)
+        self.assertEqual(self.getresponse('/file.txt').read(), b'hello')
+        self.assertEqual(self.getresponse('/notfound').status, 404)
 
     def test_directory_render(self):
         # Ensure that this wasn't accidentally broken.
-        results = self.getResponse('/').read()
-        self.assertIn('file.txt', results.decode('utf8'))
-        self.assertIn('script.py', results.decode('utf8'))
-        results = self.getResponse('/dir/').read()
-        self.assertIn('/dir/', results.decode('utf8'))
+        results = self.getresponse_text('/')
+        self.assertIn('file.txt', results)
+        self.assertIn('script.py', results)
+        results = self.getresponse_text('/dir/')
+        self.assertIn('/dir/', results)
 
     def test_request_handler_basic(self):
         self.assertEqual(
-            self.getResponse('/base/an_object').read(), b'object:an_object')
+            self.getresponse_text('/base/an_object'), 'object:an_object')
         self.assertEqual(
-            self.getResponse('/base/config.js').read(), b'config:config.js')
+            self.getresponse_text('/base/config.js'), 'config:config.js')
 
     def test_request_handler_cgi(self):
         self.assertEqual(
-            b'Hello World\n', self.getResponse('/script.py').read())
+            'Hello World', self.getresponse_text('/script.py'))
         self.assertEqual(
-            b'Hello World\n', self.getResponse('/script.py?/hello').read())
+            'Hello World', self.getresponse_text('/script.py?/hello'))
 
     def test_request_handler_cgi_http_accept(self):
+        self.assertEqual('', self.getresponse_text('/header.py', {}))
         self.assertEqual(
-            b'\n', self.getResponse('/header.py', {}).read())
-        self.assertEqual(
-            b'application/json\n', self.getResponse('/header.py?', {
+            'application/json', self.getresponse_text('/header.py?', {
                 b'Accept': b'application/json',
-            }).read())
+            }))
 
     def test_request_handler_notfound(self):
-        self.assertEqual(self.getResponse('/base/notfound').status, 404)
+        self.assertEqual(self.getresponse('/base/notfound').status, 404)
 
 
 class NeuteredServer(HTTPServer):
