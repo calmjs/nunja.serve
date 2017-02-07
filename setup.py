@@ -31,6 +31,7 @@ setup(
     install_requires=[
         'setuptools',
         # -*- Extra requirements: -*-
+        'calmjs',
     ],
     entry_points={
     },

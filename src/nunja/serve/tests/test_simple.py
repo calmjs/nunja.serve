@@ -13,7 +13,7 @@ from nunja.serve.compat import HTTPServer
 from nunja.serve.compat import HTTPConnection
 
 from nunja.serve import simple
-from nunja.serve.simple import NunjaHTTPRequestHandler
+# from nunja.serve.simple import NunjaHTTPRequestHandler
 from nunja.serve.simple import NunjaHTTPRequestHandlerFactory
 from nunja.serve.simple import _is_cgi
 from nunja.serve.simple import normpath
