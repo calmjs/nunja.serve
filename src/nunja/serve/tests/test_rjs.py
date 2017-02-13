@@ -11,6 +11,7 @@ from nunja.registry import MoldRegistry
 
 from nunja.serve.rjs import Provider
 from nunja.serve.rjs import fetch
+from nunja.serve.rjs import get_path
 from nunja.serve.rjs import make_config
 
 from calmjs.testing import mocks
@@ -100,21 +101,23 @@ class RJSConfigTestCase(BaseTestCase):
             }
         })
 
-    def test_fetch_missing_registry(self):
+    def test_get_path_missing_registry(self):
         self.setup_default()
         # force a missing
         default_registry.records['nunja.mold'] = None
         with self.assertRaises(KeyError):
-            fetch('nunja.mold', 'nunja.testing.mold/basic/template.nja')
+            get_path('nunja.mold', 'nunja.testing.mold/basic/template.nja')
 
-    def test_fetch_missing_target(self):
+    def test_get_path_missing_target(self):
         self.setup_default()
         with self.assertRaises(KeyError):
-            fetch('nunja.mold', 'nunja.testing.mold/basic/not_found')
+            get_path('nunja.mold', 'nunja.testing.mold/basic/not_found')
 
-    def test_fetch_good(self):
+    def test_get_path_fetch_good(self):
         self.setup_default()
-        result = fetch('nunja.mold', 'nunja.testing.mold/basic/template.nja')
+        path = get_path(
+            'nunja.mold', 'nunja.testing.mold/basic/template.nja')
+        result = fetch(path)
         self.assertEqual(result, '<span>{{ value }}</span>\n')
 
 

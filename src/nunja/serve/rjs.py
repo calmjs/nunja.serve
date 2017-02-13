@@ -53,7 +53,7 @@ def make_config(base_url, registry_names=(ENTRY_POINT_NAME,)):
     return template
 
 
-def fetch(registry_name, mold_id_path):
+def get_path(registry_name, mold_id_path):
     registry = get(registry_name)
     if not registry:
         raise KeyError("registry '%s' not found" % registry_name)
@@ -63,6 +63,10 @@ def fetch(registry_name, mold_id_path):
     except OSError:
         raise KeyError("template at '%s' not found" % mold_id_path)
 
+    return path
+
+
+def fetch(path):
     with codecs.open(path, encoding='utf-8') as f:
         return f.read()
 
@@ -89,9 +93,9 @@ class Provider(base.BaseProvider):
             json_dumps(self.requirejs_config, indent=4) +
             UMD_REQUIREJS_JSON_EXPORT_FOOTER)
 
-    def fetch_object(self, identifier):
+    def fetch_path(self, identifier):
         """
-        The path is the URL fragment after the base_url.
+        Return the path of the source identified by the identifier.
         """
 
         # grab the first fragment
@@ -104,4 +108,12 @@ class Provider(base.BaseProvider):
         if registry_name not in self.registry_names:
             raise KeyError("registry '%s' unavailable" % registry_name)
 
-        return fetch(registry_name, mold_id_path)
+        return get_path(registry_name, mold_id_path)
+
+    def fetch_object(self, identifier):
+        """
+        The path is the URL fragment after the base_url.
+        """
+
+        path = self.fetch_path(identifier)
+        return fetch(path)
