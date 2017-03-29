@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 import unittest
+from os.path import join
 
 from nunja.serve.base import BaseProvider
+from nunja.serve.base import fetch
+
+from calmjs.testing.utils import mkdtemp
 from nunja.serve.testing import DummyProvider
 
 
@@ -37,3 +41,10 @@ class DummyProviderTestCase(unittest.TestCase):
         provider = DummyProvider('/base', config_subpaths=('config.js',))
         with self.assertRaises(KeyError):
             provider.fetch('/base/notfound')
+
+    def test_get_path_fetch_good(self):
+        p = join(mkdtemp(self), 'file')
+        with open(p, 'w') as fd:
+            fd.write('hello')
+        result = fetch(p)
+        self.assertEqual(result, 'hello')

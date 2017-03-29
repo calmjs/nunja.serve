@@ -7,7 +7,6 @@ The goal is to provide a live-reloading server implementation for usage
 during the development phase of a given library.
 """
 
-import codecs
 import logging
 
 from calmjs.utils import json_dumps
@@ -66,11 +65,6 @@ def get_path(registry_name, mold_id_path):
     return path
 
 
-def fetch(path):
-    with codecs.open(path, encoding='utf-8') as f:
-        return f.read()
-
-
 class Provider(base.BaseProvider):
     """
     A more standard server implementation
@@ -109,11 +103,3 @@ class Provider(base.BaseProvider):
             raise KeyError("registry '%s' unavailable" % registry_name)
 
         return get_path(registry_name, mold_id_path)
-
-    def fetch_object(self, identifier):
-        """
-        The path is the URL fragment after the base_url.
-        """
-
-        path = self.fetch_path(identifier)
-        return fetch(path)

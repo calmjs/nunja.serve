@@ -3,7 +3,14 @@
 Module for providing base classes.
 """
 
+import codecs
+
 from nunja.registry import ENTRY_POINT_NAME
+
+
+def fetch(path):
+    with codecs.open(path, encoding='utf-8') as f:
+        return f.read()
 
 
 class BaseProvider(object):
@@ -43,13 +50,25 @@ class BaseProvider(object):
 
         raise NotImplementedError
 
+    def fetch_path(self, identifier):
+        """
+        Return the underlying filesystem path for the given object.
+        """
+
+        raise NotImplementedError
+
     def fetch_object(self, identifier):
         """
         Serve an object identified by the identifier; typically objects
         are the templates and/or the script files provided by the mold.
+
+        The default implementation simply relies on the fetch_path
+        method to acquire the filesystem path, and then call a function
+        that simply return the contents at that location as a string.
         """
 
-        raise NotImplementedError
+        path = self.fetch_path(identifier)
+        return fetch(path)
 
     def fetch(self, path):
         """

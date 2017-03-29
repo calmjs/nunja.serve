@@ -10,7 +10,6 @@ from calmjs.rjs.ecma import parse
 from nunja.registry import MoldRegistry
 
 from nunja.serve.rjs import Provider
-from nunja.serve.rjs import fetch
 from nunja.serve.rjs import get_path
 from nunja.serve.rjs import make_config
 
@@ -112,13 +111,6 @@ class RJSConfigTestCase(BaseTestCase):
         self.setup_default()
         with self.assertRaises(KeyError):
             get_path('nunja.mold', 'nunja.testing.mold/basic/not_found')
-
-    def test_get_path_fetch_good(self):
-        self.setup_default()
-        path = get_path(
-            'nunja.mold', 'nunja.testing.mold/basic/template.nja')
-        result = fetch(path)
-        self.assertEqual(result, '<span>{{ value }}</span>\n')
 
 
 class ProviderTestCase(BaseTestCase):
