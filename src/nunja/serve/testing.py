@@ -4,7 +4,7 @@ from nunja.serve.base import BaseProvider
 
 class DummyProvider(BaseProvider):
 
-    def fetch_config(self, identifier):
+    def fetch_core(self, identifier):
         return 'config:' + identifier
 
     def fetch_object(self, identifier):

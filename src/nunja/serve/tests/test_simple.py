@@ -110,7 +110,7 @@ class RequestHandlerTestCase(unittest.TestCase):
 
     def setUp(self):
         base_setup(self)
-        dummy = DummyProvider('/base', config_subpaths=('config.js',))
+        dummy = DummyProvider('/base', core_subpaths=('config.js',))
         handler = NunjaHTTPRequestHandlerFactory(dummy, nunja_prefix='/base')
         self.server = HTTPServer(('localhost', 0), handler)
         self.thread = threading.Thread(target=self.server.serve_forever)

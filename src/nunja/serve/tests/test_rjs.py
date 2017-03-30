@@ -115,10 +115,16 @@ class RJSConfigTestCase(BaseTestCase):
 
 class ProviderTestCase(BaseTestCase):
 
-    def test_fetch_config(self):
+    def test_fetch_core_init(self):
         self.setup_default()
         server = Provider('base')
-        result = server.fetch_config('base/config.js')
+        result = server.fetch_core('init.js')
+        self.assertTrue(result.startswith("'use strict'"))
+
+    def test_fetch_core_config(self):
+        self.setup_default()
+        server = Provider('base')
+        result = server.fetch_core('config.js')
 
         tree = parse(result)
         config = json.loads(tree.children()[0].children()[0].children()[

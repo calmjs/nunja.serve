@@ -19,6 +19,15 @@ from nunja.serve import base
 
 logger = logging.getLogger(__name__)
 
+default_init_script = """'use strict';
+window.addEventListener("load", function(event) {
+    require(['nunja/core'], function(core) {
+        console.log('loaded');
+        core.engine.do_onload(document.body);
+    });
+});
+"""
+
 
 def make_config(base_url, registry_names=(ENTRY_POINT_NAME,)):
     """
@@ -74,18 +83,28 @@ class Provider(base.BaseProvider):
 
     def __init__(
             self, base_url,
-            config_subpaths=('config.js',),
+            core_subpaths=('config.js', 'init.js',),
+            init_script=default_init_script,
             registry_names=(ENTRY_POINT_NAME,),
             ):
         super(Provider, self).__init__(
-            base_url, config_subpaths, registry_names)
+            base_url, core_subpaths, registry_names)
+
+        self.init_script = init_script
         self.requirejs_config = make_config(self.base_url, self.registry_names)
 
-    def fetch_config(self, identifier):
+        self.core_subpaths = dict(zip(
+            core_subpaths, [self.build_config(), init_script]))
+
+    def fetch_core(self, identifier):
+        return self.core_subpaths[identifier]
+
+    def build_config(self):
         return (
             UMD_REQUIREJS_JSON_EXPORT_HEADER +
             json_dumps(self.requirejs_config, indent=4) +
-            UMD_REQUIREJS_JSON_EXPORT_FOOTER)
+            UMD_REQUIREJS_JSON_EXPORT_FOOTER
+        )
 
     def fetch_path(self, identifier):
         """

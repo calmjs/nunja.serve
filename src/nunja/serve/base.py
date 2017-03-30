@@ -24,7 +24,7 @@ class BaseProvider(object):
     """
 
     def __init__(
-            self, base_url, config_subpaths=(),
+            self, base_url, core_subpaths=(),
             registry_names=(ENTRY_POINT_NAME,)):
         """
         Arguments
@@ -32,18 +32,19 @@ class BaseProvider(object):
         base_url
             The base url for which the provider will handle.  Typically
             this is a subpath on the root of the host (e.g `/scripts').
-        config_subpaths
-            The subpaths associated with configuration files for the
-            system attached.
+        core_subpaths
+            The subpaths associated with this provider, which includes
+            configuration files for the system attached, and also
+            scripts that will initialise the front-end system.
         registry_names
             The nunja registries to load.
         """
 
         self.base_url = base_url
-        self.config_subpaths = config_subpaths
+        self.core_subpaths = set(core_subpaths)
         self.registry_names = registry_names
 
-    def fetch_config(self, identifier):
+    def fetch_core(self, identifier):
         """
         Serve a configuration file identified by the identifier
         """
@@ -90,6 +91,6 @@ class BaseProvider(object):
         identifier = '/'.join(
             i for i in path[len(self.base_url):].split('/') if i)
 
-        if identifier in self.config_subpaths:
-            return self.fetch_config(identifier)
+        if identifier in self.core_subpaths:
+            return self.fetch_core(identifier)
         return self.fetch_object(identifier)

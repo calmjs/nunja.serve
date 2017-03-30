@@ -12,15 +12,15 @@ from nunja.serve.testing import DummyProvider
 class BaseProviderTestCase(unittest.TestCase):
 
     def test_base_provider_construct(self):
-        provider = BaseProvider('/base', config_subpaths=('config.js',))
+        provider = BaseProvider('/base', core_subpaths=('config.js',))
         self.assertEqual(provider.base_url, '/base')
-        self.assertEqual(provider.config_subpaths, ('config.js',))
+        self.assertEqual(provider.core_subpaths, {'config.js'})
 
     def test_base_provider_not_implemented(self):
-        provider = BaseProvider('/base', config_subpaths=('config.js',))
+        provider = BaseProvider('/base', core_subpaths=('config.js',))
 
         with self.assertRaises(NotImplementedError):
-            provider.fetch_config('/some/path')
+            provider.fetch_core('/some/path')
 
         with self.assertRaises(NotImplementedError):
             provider.fetch_object('/some/path')
@@ -32,13 +32,13 @@ class DummyProviderTestCase(unittest.TestCase):
     """
 
     def test_base_provider_serve(self):
-        provider = DummyProvider('/base', config_subpaths=('config.js',))
+        provider = DummyProvider('/base', core_subpaths=('config.js',))
         self.assertIsNone(provider.fetch('/elsewhere'))
         self.assertEqual(provider.fetch('/base/an_object'), 'object:an_object')
         self.assertEqual(provider.fetch('/base/config.js'), 'config:config.js')
 
     def test_base_provider_serve_errors(self):
-        provider = DummyProvider('/base', config_subpaths=('config.js',))
+        provider = DummyProvider('/base', core_subpaths=('config.js',))
         with self.assertRaises(KeyError):
             provider.fetch('/base/notfound')
 
