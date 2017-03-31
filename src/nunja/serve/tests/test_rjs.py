@@ -2,12 +2,8 @@
 import unittest
 import json
 
-from pkg_resources import Distribution
-
 from calmjs.registry import _inst as default_registry
 from calmjs.rjs.ecma import parse
-
-from nunja.registry import MoldRegistry
 
 from nunja.serve.rjs import Provider
 from nunja.serve.rjs import get_path
@@ -16,32 +12,13 @@ from nunja.serve.rjs import make_config
 from calmjs.testing import mocks
 from calmjs.utils import pretty_logging
 
-
-class BaseTestCase(unittest.TestCase):
-
-    def create_workingset_registry(self, name='nunja.mold'):
-        working_set = mocks.WorkingSet({
-            name: [
-                'nunja.testing.mold = nunja.testing:mold',
-            ]},
-            dist=Distribution(project_name='nunja.testing')
-        )
-        registry = MoldRegistry(name, _working_set=working_set)
-        return working_set, registry
-
-    def setup_default(self, name='nunja.mold'):
-        def cleanup():
-            default_registry.records.pop(name, None)
-
-        working_set, registry = self.create_workingset_registry(name)
-        self.addCleanup(cleanup)
-        default_registry.records[name] = registry
+from nunja.serve.testing import setup_test_mold_registry
 
 
-class RJSConfigTestCase(BaseTestCase):
+class RJSConfigTestCase(unittest.TestCase):
 
     def test_generate_requirejs(self):
-        self.setup_default()
+        setup_test_mold_registry(self)
         result = make_config('base')
         self.assertEqual(result, {
             'baseUrl': 'base',
@@ -63,12 +40,12 @@ class RJSConfigTestCase(BaseTestCase):
         })
 
     def test_generate_requirejs_no_registry(self):
-        self.setup_default()
+        setup_test_mold_registry(self)
         result = make_config('base', registry_names=())
         self.assertEqual(result, {'baseUrl': 'base', 'paths': {}})
 
     def test_generate_requirejs_bad_registry(self):
-        self.setup_default()
+        setup_test_mold_registry(self)
         with pretty_logging('nunja', stream=mocks.StringIO()) as s:
             result = make_config('base', registry_names=('no_such_registry',))
         self.assertEqual(result, {'baseUrl': 'base', 'paths': {}})
@@ -76,8 +53,8 @@ class RJSConfigTestCase(BaseTestCase):
             "registry 'no_such_registry' does not exist", s.getvalue())
 
     def test_generate_requirejs_dupe_registry(self):
-        self.setup_default()
-        self.setup_default('nunja.mold.alt')
+        setup_test_mold_registry(self)
+        setup_test_mold_registry(self, 'nunja.mold.alt')
         with pretty_logging('nunja', stream=mocks.StringIO()):
             result = make_config('base', registry_names=(
                 'nunja.mold', 'nunja.mold.alt'))
@@ -101,28 +78,28 @@ class RJSConfigTestCase(BaseTestCase):
         })
 
     def test_get_path_missing_registry(self):
-        self.setup_default()
+        setup_test_mold_registry(self)
         # force a missing
         default_registry.records['nunja.mold'] = None
         with self.assertRaises(KeyError):
             get_path('nunja.mold', 'nunja.testing.mold/basic/template.nja')
 
     def test_get_path_missing_target(self):
-        self.setup_default()
+        setup_test_mold_registry(self)
         with self.assertRaises(KeyError):
             get_path('nunja.mold', 'nunja.testing.mold/basic/not_found')
 
 
-class ProviderTestCase(BaseTestCase):
+class ProviderTestCase(unittest.TestCase):
 
     def test_fetch_core_init(self):
-        self.setup_default()
+        setup_test_mold_registry(self)
         server = Provider('base')
         result = server.fetch_core('init.js')
         self.assertTrue(result.startswith("'use strict'"))
 
     def test_fetch_core_config(self):
-        self.setup_default()
+        setup_test_mold_registry(self)
         server = Provider('base')
         result = server.fetch_core('config.js')
 
@@ -150,20 +127,20 @@ class ProviderTestCase(BaseTestCase):
         })
 
     def test_fetch_object_insufficient_path(self):
-        self.setup_default()
+        setup_test_mold_registry(self)
         server = Provider('base')
         with self.assertRaises(KeyError):
             server.fetch_object('nunja.mold')
 
     def test_fetch_object_disabled_registry(self):
-        self.setup_default()
+        setup_test_mold_registry(self)
         server = Provider('base', registry_names=())
         with self.assertRaises(KeyError):
             server.fetch_object(
                 'nunja.mold/nunja.testing.mold/basic/template.nja')
 
     def test_fetch_object_good(self):
-        self.setup_default()
+        setup_test_mold_registry(self)
         server = Provider('base')
         result = server.fetch_object(
             'nunja.mold/nunja.testing.mold/basic/template.nja')
