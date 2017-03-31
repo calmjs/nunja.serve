@@ -66,24 +66,14 @@ before_install:
   - npm --version
 
 install:
-  - pip install nose coverage flake8
+  - pip install coverage flake8
   - pip install calmjs
   - pip install -e git+https://github.com/calmjs/nunja.git#egg=nunja
   - python setup.py develop
 script:
   - flake8 setup.py src
-  # with pypy version >= 2.5.0 (maybe earlier, definitely after 2.2.1),
-  # coverage fails to produce meaningful results running with nose.
-  # Check that and only use nose (which is only somewhat useful only
-  # when errors happen) with CPython.  This happened on the prior
-  # changeset (ee599b4d) where checks and testing with callbacks that
-  # lead to recursive calling of functions were added.
-  - if [[ $TRAVIS_PYTHON_VERSION == pypy* ]]; then
-      coverage run --include=src/* -m unittest nunja.serve.tests.make_suite ;
-      coverage report -m ;
-    else
-      nosetests --with-coverage --cover-package=nunja.serve --with-doctest ;
-    fi
+  - coverage run --include=src/* -m unittest nunja.serve.tests.make_suite ;
+  - coverage report -m ;
 # Alternatively without nose
 after_success:
   # only submit coverage when testing under linux.
