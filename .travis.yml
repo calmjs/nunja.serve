@@ -71,6 +71,9 @@ install:
   - pip install calmjs
   - pip install -e git+https://github.com/calmjs/nunja.git#egg=nunja
   - python setup.py develop
+  - if [[ ! `python -c 'import sys;print(".".join(str(i) for i in sys.version_info))'` < "3.5" ]]; then
+      pip install sanic aiohttp;
+    fi
 script:
   - flake8 setup.py src
   - coverage run --include=src/* -m unittest nunja.serve.tests.make_suite ;

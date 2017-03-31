@@ -30,6 +30,10 @@ install:
   - pip install coverage calmjs
   - pip install -e git+https://github.com/calmjs/nunja.git#egg=nunja
   - python setup.py develop
+  - ps: >-
+      if ($env:PYTHON_VERSION -ge '35') {
+        pip install sanic aiohttp;
+      }
 
 test_script:
   - coverage run --include=src\* -m unittest nunja.serve.tests.make_suite
