@@ -38,6 +38,14 @@ setup(
     license='gpl',
     packages=find_packages('src'),
     package_dir={'': 'src'},
+    extras_require={
+        'sanic': [
+            'sanic>=0.4',
+        ],
+        'dev': [
+            'aiohttp',
+        ],
+    },
     namespace_packages=['nunja'],
     include_package_data=True,
     zip_safe=False,
