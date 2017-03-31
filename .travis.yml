@@ -51,7 +51,8 @@ before_install:
       brew outdated pyenv || brew upgrade pyenv ;
       pyenv install $TRAVIS_PYTHON_VERSION ;
       pyenv global $TRAVIS_PYTHON_VERSION ;
-      pyenv rehash ;
+      eval "$(pyenv init -)" ;
+      python --version ;
       python -m pip install --user virtualenv ;
       python -m virtualenv ~/.venv ;
       source ~/.venv/bin/activate ;
@@ -70,6 +71,9 @@ install:
   - pip install calmjs
   - pip install -e git+https://github.com/calmjs/nunja.git#egg=nunja
   - python setup.py develop
+  - if [[ ! `python -c 'import sys;print(".".join(str(i) for i in sys.version_info))'` < "3.5" ]]; then
+      pip install sanic aiohttp;
+    fi
 script:
   - flake8 setup.py src
   - coverage run --include=src/* -m unittest nunja.serve.tests.make_suite ;
