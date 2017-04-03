@@ -20,28 +20,28 @@ class RJSProviderTestCase(unittest.TestCase):
 
     def test_core_config(self):
         setup_test_mold_registry(self)
-        provider = RJSProvider('/nunja')
+        provider = RJSProvider('/nunja/')
         provider(self.app)
         request, response = self.app.test_client.get('/nunja/config.js')
         self.assertTrue(response.text.startswith(
             "(function() {\n    'use strict';\n\n"))
 
     def test_core_init(self):
-        provider = RJSProvider('/nunja/nested')
+        provider = RJSProvider('/nunja/nested/')
         provider(self.app)
         request, response = self.app.test_client.get('/nunja/nested/init.js')
         self.assertTrue(response.text.startswith("'use strict';"))
 
     def test_acquire_template(self):
         setup_test_mold_registry(self)
-        provider = RJSProvider('/nunja')
+        provider = RJSProvider('/nunja/')
         provider(self.app)
         request, response = self.app.test_client.get(
             '/nunja/nunja.mold/nunja.testing.mold/basic/template.nja')
         self.assertEqual(response.text, '<span>{{ value }}</span>\n')
 
     def test_acquire_missing(self):
-        provider = RJSProvider('/nunja')
+        provider = RJSProvider('/nunja/')
         provider(self.app)
         request, response = self.app.test_client.get('/nunja/nested/init.js')
         self.assertEqual(response.status, 404)

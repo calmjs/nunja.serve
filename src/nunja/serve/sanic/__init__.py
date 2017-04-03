@@ -29,7 +29,7 @@ class SanicMixin(object):
         Set up the app with routes.
         """
 
-        app.add_route(self.serve, self.base_url + '/<identifier:.*>')
+        app.add_route(self.serve, self.base_url + '<identifier:.*>')
 
     def __call__(self, app):
         self.setup(app)
@@ -44,6 +44,6 @@ class RJSProvider(SanicMixin, rjs.Provider):
 
     >>> from sanic import Sanic
     >>> from nunja.serve import sanic
-    >>> app = sanic.RJSProvider('/nunja')(Sanic())
+    >>> app = sanic.RJSProvider('/nunja/')(Sanic())
     >>> app.run(port=9000)
     """
