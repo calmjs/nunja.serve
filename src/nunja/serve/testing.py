@@ -7,6 +7,9 @@ from calmjs.testing import mocks
 from nunja.serve.base import BaseProvider
 from nunja.registry import MoldRegistry
 
+js_mimetypes = (
+    'text/javascript', 'application/x-javascript', 'application/javascript')
+
 
 class DummyProvider(BaseProvider):
 
