@@ -17,7 +17,9 @@ class SanicMixin(object):
 
     async def serve(self, request, identifier):  # noqa: E999
         if identifier in self.core_subpaths:
-            return response.text(self.fetch_core(identifier))
+            return response.text(self.fetch_core(identifier), headers={
+                'Content-Type': 'application/javascript',
+            })
         try:
             path = self.fetch_path(identifier)
         except KeyError:
