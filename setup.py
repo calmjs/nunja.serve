@@ -39,6 +39,9 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     extras_require={
+        'flask': [
+            'Flask>=0.9',
+        ],
         'sanic': [
             'sanic>=0.4',
         ],

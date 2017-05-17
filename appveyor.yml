@@ -28,10 +28,14 @@ install:
   - "venv\\Scripts\\activate.bat"
 
   - pip install coverage calmjs
+  - pip install flask
   - pip install -e git+https://github.com/calmjs/nunja.git#egg=nunja
   - python setup.py develop
+  # as uvloop is NOT available on Windows.
+  - "SET SANIC_NO_UVLOOP=no"
   - ps: >-
       if ($env:PYTHON_VERSION -ge '35') {
+        pip install --no-use-wheel sanic
         pip install sanic aiohttp;
       }
 

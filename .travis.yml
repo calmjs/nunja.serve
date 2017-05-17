@@ -70,14 +70,15 @@ install:
   - pip install coverage flake8
   - pip install calmjs
   - pip install -e git+https://github.com/calmjs/nunja.git#egg=nunja
+  - pip install flask
   - python setup.py develop
   - if [[ ! `python -c 'import sys;print(".".join(str(i) for i in sys.version_info))'` < "3.5" ]]; then
       pip install sanic aiohttp;
     fi
 script:
   - flake8 setup.py src
-  - coverage run --include=src/* -m unittest nunja.serve.tests.make_suite ;
-  - coverage report -m ;
+  - coverage run --include=src/* -m unittest nunja.serve.tests.make_suite
+  - coverage report -m
 # Alternatively without nose
 after_success:
   # only submit coverage when testing under linux.

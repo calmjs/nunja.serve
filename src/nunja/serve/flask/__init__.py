@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-This provide integration with sanic.
+This provide integration with Flask.
 
-Requires Python 3.5+
+Requires Flask>=0.9
 """
 
 import mimetypes
