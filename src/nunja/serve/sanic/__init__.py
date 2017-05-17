@@ -6,8 +6,14 @@ Requires Python 3.5+
 """
 
 from sanic import response
+from sanic.router import REGEX_TYPES
 
 from nunja.serve import rjs
+
+# Sanic 0.5.2 introduced the path type, however it also has additional
+# support discerning the root parameter, so there is a bit of difference
+# between the pattern we are patching for <=0.5.1.
+REGEX_TYPES['path'] = REGEX_TYPES.get('path', (str, r'[^/]?.*?'))
 
 
 class SanicMixin(object):
@@ -31,7 +37,7 @@ class SanicMixin(object):
         Set up the app with routes.
         """
 
-        app.add_route(self.serve, self.base_url + '<identifier:.*>')
+        app.add_route(self.serve, self.base_url + '<identifier:path>')
 
     def __call__(self, app):
         self.setup(app)

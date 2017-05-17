@@ -3,21 +3,30 @@ import unittest
 import logging
 
 from sanic import Sanic
-from sanic.log import log
+from sanic import config
 
 from nunja.serve.sanic import RJSProvider
 from nunja.serve.testing import setup_test_mold_registry
 from nunja.serve.testing import js_mimetypes
 
+_log = logging.getLogger('sanic')
+
 
 class RJSProviderTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.old_level, log.level = log.level, logging.CRITICAL
+        self._log_level, _log.level = _log.level, logging.CRITICAL
+        self.LOGGING = {}
+        if hasattr(config, 'LOGGING'):  # pragma: no cover
+            self.LOGGING.update(config.LOGGING)
+            config.LOGGING.clear()
+
         self.app = Sanic('rjs_provider_test')
 
     def tearDown(self):
-        log.level = self.old_level
+        _log.level = self._log_level
+        if hasattr(config, 'LOGGING'):  # pragma: no cover
+            config.LOGGING.update(self.LOGGING)
 
     def test_core_config(self):
         setup_test_mold_registry(self)
