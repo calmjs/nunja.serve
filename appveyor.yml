@@ -31,12 +31,11 @@ install:
   - pip install flask
   - pip install -e git+https://github.com/calmjs/nunja.git#egg=nunja
   - python setup.py develop
-  # as uvloop is NOT available on Windows.
-  - "SET SANIC_NO_UVLOOP=no"
   - ps: >-
       if ($env:PYTHON_VERSION -ge '35') {
-        pip install --no-use-wheel sanic
-        pip install sanic aiohttp;
+        # as uvloop is NOT available on Windows, we use an older version
+        # of sanic
+        pip install sanic==0.4.1 aiohttp;
       }
 
 test_script:
