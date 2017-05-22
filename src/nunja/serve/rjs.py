@@ -19,13 +19,11 @@ from nunja.serve import base
 
 logger = logging.getLogger(__name__)
 
+# XXX the provided names, along with the init template, should be
+# deferred to some upstream helper specific to the current module
+# framework that is being used.
 default_init_script = """'use strict';
-window.addEventListener("load", function(event) {
-    require(['nunja/core'], function(core) {
-        console.log('loaded');
-        core.engine.do_onload(document.body);
-    });
-});
+require(['nunja/index'], function() {});
 """
 
 
